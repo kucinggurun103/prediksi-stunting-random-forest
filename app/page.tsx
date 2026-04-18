@@ -2,7 +2,7 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, Cell, AreaChart, Area } from 'recharts';
 import { db } from "./firebase";
-import { collection, addDoc, getDocs, query, orderBy, limit } from "firebase/firestore";
+import { collection, addDoc } from "firebase/firestore";
 import * as XLSX from 'xlsx';
 
 const DAFTAR_WILAYAH_JABAR = [
@@ -39,7 +39,7 @@ const ICONS = {
 };
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState("dashboard"); 
+  const [activeTab, setActiveTab] = useState("manual"); 
   const [wilayah, setWilayah] = useState("");
   const [searchWilayah, setSearchWilayah] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -54,35 +54,9 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [riwayatPrediksi, setRiwayatPrediksi] = useState<any[]>([]);
-  const [isLoadingDB, setIsLoadingDB] = useState(true);
-
   const filteredWilayah = useMemo(() => {
     return DAFTAR_WILAYAH_JABAR.filter(w => w.toLowerCase().includes(searchWilayah.toLowerCase()));
   }, [searchWilayah]);
-
-  const fetchRiwayatDariFirebase = async () => {
-    setIsLoadingDB(true);
-    setError(null);
-    try {
-      const q = query(collection(db, "riwayat_prediksi"), orderBy("tanggal", "desc"), limit(20));
-      const querySnapshot = await getDocs(q);
-      const data: any[] = [];
-      querySnapshot.forEach((doc) => {
-        data.push({ id: doc.id, ...doc.data() });
-      });
-      setRiwayatPrediksi(data.reverse()); 
-    } catch (err: any) {
-      console.error("Firebase error:", err);
-      setError("Gagal memuat data. Mohon matikan Ad-Blocker atau periksa koneksi internet Anda.");
-    } finally {
-      setIsLoadingDB(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchRiwayatDariFirebase();
-  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -133,8 +107,6 @@ export default function Home() {
         // Save to history in background without blocking the UI
         addDoc(collection(db, "riwayat_prediksi"), {
           wilayah: wilayah, prediksi_baru: data.prediksi, stunting_lalu: lastStunting, selisih: diff, tanggal: new Date()
-        }).then(() => {
-          fetchRiwayatDariFirebase(); 
         }).catch((dbErr) => {
           console.error("Database error", dbErr);
         });
@@ -237,7 +209,6 @@ export default function Home() {
       <nav className="fixed left-0 top-0 h-full w-24 bg-white border-r border-slate-200 flex flex-col items-center py-8 z-50 hidden md:flex">
         <div className="flex flex-col gap-8">
           {[
-            { id: "dashboard", icon: ICONS.Dashboard, label: "Dashboard" },
             { id: "manual", icon: ICONS.Predict, label: "Prediksi" },
             { id: "excel", icon: ICONS.Batch, label: "Massal" }
           ].map((tab) => (
@@ -278,112 +249,7 @@ export default function Home() {
             </div>
           )}
 
-          {activeTab === "dashboard" && (
-            <div className="animate-fade-up space-y-10">
-              {isLoadingDB ? (
-                <div className="h-[600px] flex flex-col items-center justify-center bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-10 text-center">
-                  <div className="w-12 h-12 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin mb-4"></div>
-                  <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Loading ...</p>
-                </div>
-              ) : riwayatPrediksi.length === 0 ? (
-                <div className="h-96 flex flex-col items-center justify-center bg-white rounded-[2.5rem] border border-slate-100 shadow-sm p-10 text-center">
-                  <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mb-6">
-                    <svg className="w-10 h-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2 2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
-                    </svg>
-                  </div>
-                  <h3 className="text-xl font-black text-slate-800 tracking-tight text-center">Belum ada data yang tersimpan</h3>
-                  <p className="text-slate-400 mt-2 font-medium text-center">Lakukan prediksi terlebih dahulu untuk melihat analitik di sini.</p>
-                </div>
-              ) : (
-                <>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {[
-                      { label: "Total Prediksi", val: riwayatPrediksi.length, unit: "Rekam", color: "indigo" },
-                      { label: "Puncak Prevalensi", val: riwayatPrediksi.length ? Math.max(...riwayatPrediksi.map(r => r.prediksi_baru)).toLocaleString("id-ID") : 0, unit: "Jiwa", color: "rose" },
-                      { label: "Analisis Terakhir", val: riwayatPrediksi.length && riwayatPrediksi[riwayatPrediksi.length - 1] ? riwayatPrediksi[riwayatPrediksi.length - 1].wilayah : "Nihil", unit: "Wilayah", color: "emerald" }
-                    ].map((stat, i) => (
-                      <div key={i} className="group p-6 bg-white border border-slate-100 rounded-[2rem] shadow-sm hover:shadow-xl hover:shadow-indigo-500/5 transition-all">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">{stat.label}</p>
-                        <div className="flex items-baseline gap-2">
-                           <h3 className="text-4xl font-black tracking-tight">{stat.val}</h3>
-                           <span className="text-xs font-bold text-slate-400 uppercase">{stat.unit}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
 
-                  <div className="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm">
-                    <div className="mb-8">
-                      <h3 className="text-lg font-black tracking-tight">Tren Prediksi Lokasi</h3>
-                      <p className="text-xs font-medium text-slate-400">Perbandingan data aktual tahun lalu vs prediksi model Random Forest</p>
-                    </div>
-                    
-                    <div className="min-h-[320px] h-80 w-full mb-10">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <AreaChart data={riwayatPrediksi} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                          <defs>
-                            <linearGradient id="colorPred" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#4F46E5" stopOpacity={0.1}/>
-                              <stop offset="95%" stopColor="#4F46E5" stopOpacity={0}/>
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                          <XAxis dataKey="wilayah" hide />
-                          <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 10, fontWeight: 700}} />
-                          <RechartsTooltip 
-                            contentStyle={{border: 'none', borderRadius: '16px', boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)', padding: '12px'}}
-                            itemStyle={{fontWeight: 800, fontSize: '12px'}}
-                          />
-                          <Area type="monotone" dataKey="stunting_lalu" stroke="#CBD5E1" strokeWidth={2} fill="transparent" name="Aktual Lalu" />
-                          <Area type="monotone" dataKey="prediksi_baru" stroke="#4F46E5" strokeWidth={4} fillOpacity={1} fill="url(#colorPred)" name="Prediksi AI" />
-                        </AreaChart>
-                      </ResponsiveContainer>
-                    </div>
-
-                    <div className="border-t border-slate-50 pt-8">
-                      <div className="flex justify-between items-center mb-6">
-                        <h3 className="text-sm font-black uppercase tracking-widest text-slate-400">Riwayat Prediksi Terbaru</h3>
-                        <button 
-                          onClick={() => downloadExcel(riwayatPrediksi, "riwayat-stunting.xlsx")}
-                          className="flex items-center gap-2 px-4 py-2 bg-emerald-50 text-emerald-600 rounded-xl text-xs font-black hover:bg-emerald-100 transition-colors"
-                        >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                          UNDUH EXCEL
-                        </button>
-                      </div>
-                      <div className="overflow-hidden border border-slate-50 rounded-2xl">
-                        <table className="w-full text-left">
-                          <thead className="bg-slate-50">
-                            <tr>
-                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-slate-400">Wilayah</th>
-                              <th className="px-6 py-4 text-[10px] font-black uppercase tracking-wider text-slate-400 text-right">Hasil Prediksi</th>
-                            </tr>
-                          </thead>
-                          <tbody className="divide-y divide-slate-50">
-                            {riwayatPrediksi.slice(-5).reverse().map((row, idx) => (
-                              <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                                <td className="px-6 py-4">
-                                  <p className="text-sm font-bold text-slate-700 uppercase">{row.wilayah}</p>
-                                  <p className="text-[10px] text-slate-300 font-bold">{row.tanggal?.seconds ? new Date(row.tanggal.seconds * 1000).toLocaleDateString('id-ID') : 'Baru'}</p>
-                                </td>
-                                <td className="px-6 py-4 text-right">
-                                  <div className="flex flex-col items-end">
-                                    <span className="text-sm font-black text-indigo-600">{row.prediksi_baru.toLocaleString("id-ID")}</span>
-                                    <TrendBadge diff={row.selisih} />
-                                  </div>
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          )}
 
           {activeTab === "manual" && (
             <div className="max-w-3xl mx-auto space-y-10 animate-fade-up">
@@ -604,7 +470,6 @@ export default function Home() {
 
       <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-slate-200 md:hidden flex justify-around py-4 z-50 shadow-lg">
          {[
-            { id: "dashboard", icon: ICONS.Dashboard },
             { id: "manual", icon: ICONS.Predict },
             { id: "excel", icon: ICONS.Batch }
           ].map((tab) => (
