@@ -50,11 +50,11 @@ export default function Home() {
   
   const [hasilManual, setHasilManual] = useState(null);
   const [file, setFile] = useState(null);
-  const [hasilBatch, setHasilBatch] = useState([]);
+  const [hasilBatch, setHasilBatch] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const [riwayatPrediksi, setRiwayatPrediksi] = useState([]);
+  const [riwayatPrediksi, setRiwayatPrediksi] = useState<any[]>([]);
   const [isLoadingDB, setIsLoadingDB] = useState(true);
 
   const filteredWilayah = useMemo(() => {
@@ -162,7 +162,7 @@ export default function Home() {
     }));
   }, [hasilBatch]);
 
-  const downloadExcel = (data, filename = "data-prediksi.xlsx") => {
+  const downloadExcel = (data: any[], filename: string = "data-prediksi.xlsx") => {
     if (!data || data.length === 0) return;
     const exportData = data.map(item => ({
       Wilayah: item.wilayah,
