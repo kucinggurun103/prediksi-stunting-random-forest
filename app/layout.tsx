@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Intel Stunting | Analitik & Prediksi Regional",
+  title: "Prediksi Stunting",
   description: "Platform analitik prevalensi stunting regional dan pemodelan prediktif menggunakan AI.",
 };
 
