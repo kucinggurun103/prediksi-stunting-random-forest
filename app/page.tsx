@@ -117,7 +117,7 @@ export default function Home() {
         let val = formData[key].replace(/\./g, '').replace(/,/g, '.');
         cleanedData[key] = parseFloat(val) || 0;
       }
-      const response = await fetch("http://127.0.0.1:8000/predict", {
+      const response = await fetch("/api/predict", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(cleanedData),
       });
@@ -143,7 +143,7 @@ export default function Home() {
     const formExcelData = new FormData();
     formExcelData.append("file", file);
     try {
-      const response = await fetch("http://127.0.0.1:8000/predict-batch", { method: "POST", body: formExcelData });
+      const response = await fetch("/api/predict-batch", { method: "POST", body: formExcelData });
       const data = await response.json();
       if (data.status === "success") setHasilBatch(data.hasil_batch);
       else setError(data.error);
