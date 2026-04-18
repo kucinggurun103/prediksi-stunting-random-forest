@@ -16,22 +16,22 @@ const DAFTAR_WILAYAH_JABAR = [
 ];
 
 const ICONS = {
-  Dashboard: (className) => (
+  Dashboard: (className: string) => (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
     </svg>
   ),
-  Predict: (className) => (
+  Predict: (className: string) => (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
     </svg>
   ),
-  Batch: (className) => (
+  Batch: (className: string) => (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
     </svg>
   ),
-  Alert: (className) => (
+  Alert: (className: string) => (
     <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
     </svg>
@@ -67,12 +67,12 @@ export default function Home() {
     try {
       const q = query(collection(db, "riwayat_prediksi"), orderBy("tanggal", "desc"), limit(20));
       const querySnapshot = await getDocs(q);
-      const data = [];
+      const data: any[] = [];
       querySnapshot.forEach((doc) => {
         data.push({ id: doc.id, ...doc.data() });
       });
       setRiwayatPrediksi(data.reverse()); 
-    } catch (err) {
+    } catch (err: any) {
       console.error("Firebase error:", err);
       setError("Gagal memuat data. Mohon matikan Ad-Blocker atau periksa koneksi internet Anda.");
     } finally {
@@ -84,13 +84,13 @@ export default function Home() {
     fetchRiwayatDariFirebase();
   }, []);
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     const regex = /^[0-9.,]*$/;
     if (value === '' || regex.test(value)) setFormData({ ...formData, [name]: value });
   };
 
-  const handleBlur = (e) => {
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     if (!value) return;
     const decimalFields = ["airMinumLalu", "sanitasiLalu"];
@@ -105,16 +105,18 @@ export default function Home() {
     }
   };
 
-  const handleFileChange = (e) => setFile(e.target.files[0]);
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) setFile(e.target.files[0]);
+  };
 
-  const submitManual = async (e) => {
+  const submitManual = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!wilayah) return setError("Silakan pilih wilayah terlebih dahulu!");
     setLoading(true); setHasilManual(null); setError(null);
     try {
-      const cleanedData = {};
+      const cleanedData: any = {};
       for (const key in formData) {
-        let val = formData[key].replace(/\./g, '').replace(/,/g, '.');
+        let val = (formData as any)[key].replace(/\./g, '').replace(/,/g, '.');
         cleanedData[key] = parseFloat(val) || 0;
       }
       const response = await fetch("/api/predict", {
@@ -133,10 +135,10 @@ export default function Home() {
           fetchRiwayatDariFirebase(); 
         } catch (dbErr) { console.error("Database error", dbErr); }
       } else setError(data.error);
-    } catch (err) { setError("Gagal terhubung ke server AI."); } finally { setLoading(false); }
+    } catch (err: any) { setError("Gagal terhubung ke server AI."); } finally { setLoading(false); }
   };
 
-  const submitBatch = async (e) => {
+  const submitBatch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) return setError("Silakan unggah dataset terlebih dahulu!");
     setLoading(true); setHasilBatch([]); setError(null);
@@ -207,7 +209,7 @@ export default function Home() {
     document.body.removeChild(link);
   };
 
-  const TrendBadge = ({ diff }) => {
+  const TrendBadge = ({ diff }: { diff: number }) => {
     const isUp = diff > 0;
     const isNeutral = diff === 0;
     if (isNeutral) return <span className="px-3 py-1 text-xs font-bold rounded-full bg-slate-100 text-slate-600 border border-slate-200">Tetap</span>;
