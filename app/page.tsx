@@ -1,5 +1,5 @@
 "use client";
-import { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, Legend, Cell, AreaChart, Area } from 'recharts';
 import { db } from "./firebase";
 import { collection, addDoc, getDocs, query, orderBy, limit } from "firebase/firestore";
