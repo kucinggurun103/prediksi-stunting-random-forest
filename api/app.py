@@ -3,16 +3,23 @@ from flask_cors import CORS
 import joblib
 import pandas as pd
 
+import os
+
 app = Flask(__name__)
 CORS(app) 
 
 try:
-    model = joblib.load('model_stunting_rf_fe.pkl')
-    daftar_fitur = joblib.load('daftar_fitur_stunting.pkl')
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    model_path = os.path.join(base_dir, 'model_stunting_rf_fe.pkl')
+    fitur_path = os.path.join(base_dir, 'daftar_fitur_stunting.pkl')
+    
+    model = joblib.load(model_path)
+    daftar_fitur = joblib.load(fitur_path)
 except Exception as e:
     print("GAGAL MEMUAT MODEL:", e)
 
 # 1. RUTE UNTUK INPUT MANUAL
+@app.route('/api/predict', methods=['POST'])
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
@@ -48,6 +55,7 @@ def predict():
         return jsonify({'error': str(e), 'status': 'failed'}), 400
 
 # 2. RUTE UNTUK UPLOAD BATCH (EXCEL/CSV)
+@app.route('/api/predict-batch', methods=['POST'])
 @app.route('/predict-batch', methods=['POST'])
 def predict_batch():
     try:
