@@ -128,14 +128,24 @@ export default function Home() {
         const lastStunting = cleanedData.stuntingLalu;
         const diff = data.prediksi - lastStunting;
         setHasilManual({ prediction: data.prediksi, lastStunting: lastStunting, diff: diff });
-        try {
-          await addDoc(collection(db, "riwayat_prediksi"), {
-            wilayah: wilayah, prediksi_baru: data.prediksi, stunting_lalu: lastStunting, selisih: diff, tanggal: new Date()
-          });
+        setLoading(false); // Stop loading spinner immediately
+        
+        // Save to history in background without blocking the UI
+        addDoc(collection(db, "riwayat_prediksi"), {
+          wilayah: wilayah, prediksi_baru: data.prediksi, stunting_lalu: lastStunting, selisih: diff, tanggal: new Date()
+        }).then(() => {
           fetchRiwayatDariFirebase(); 
-        } catch (dbErr) { console.error("Database error", dbErr); }
-      } else setError(data.error);
-    } catch (err: any) { setError("Gagal terhubung ke server AI."); } finally { setLoading(false); }
+        }).catch((dbErr) => {
+          console.error("Database error", dbErr);
+        });
+      } else {
+        setError(data.error);
+        setLoading(false);
+      }
+    } catch (err: any) { 
+      setError("Gagal terhubung ke server AI."); 
+      setLoading(false);
+    } 
   };
 
   const submitBatch = async (e: React.FormEvent) => {
