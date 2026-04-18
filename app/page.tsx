@@ -44,7 +44,7 @@ export default function Home() {
   const [searchWilayah, setSearchWilayah] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{ [key: string]: string }>({
     puskesmas: "", giziKurangLalu: "", airMinumLalu: "", sanitasiLalu: "", kemiskinanLalu: "", stuntingLalu: ""
   });
   
