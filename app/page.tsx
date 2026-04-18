@@ -48,11 +48,11 @@ export default function Home() {
     puskesmas: "", giziKurangLalu: "", airMinumLalu: "", sanitasiLalu: "", kemiskinanLalu: "", stuntingLalu: ""
   });
   
-  const [hasilManual, setHasilManual] = useState(null);
-  const [file, setFile] = useState(null);
+  const [hasilManual, setHasilManual] = useState<any | null>(null);
+  const [file, setFile] = useState<File | null>(null);
   const [hasilBatch, setHasilBatch] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState<string | null>(null);
 
   const [riwayatPrediksi, setRiwayatPrediksi] = useState<any[]>([]);
   const [isLoadingDB, setIsLoadingDB] = useState(true);
