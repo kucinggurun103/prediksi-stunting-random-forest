@@ -286,11 +286,11 @@ export default function Home() {
 
                 {[
                   { label: "Jumlah Puskesmas", name: "puskesmas", tip: "Total pusat kesehatan aktif" },
-                  { label: "Total Stunting Lalu", name: "stuntingLalu", tip: "Jumlah kasus tahun sebelumnya" },
-                  { label: "Balita Gizi Kurang", name: "giziKurangLalu", tip: "Kasus gizi buruk tercatat" },
-                  { label: "Akses Air Layak (%)", name: "airMinumLalu", tip: "Persentase cakupan air bersih" },
-                  { label: "Akses Sanitasi (%)", name: "sanitasiLalu", tip: "Persentase fasilitas higienis" },
-                  { label: "Garis Kemiskinan", name: "kemiskinanLalu", tip: "Ambang batas ekonomi (Rp)" }
+                  { label: "Total Stunting Tahun Lalu", name: "stuntingLalu", tip: "Jumlah kasus tahun sebelumnya" },
+                  { label: "Balita Gizi Kurang Tahun Lalu", name: "giziKurangLalu", tip: "Kasus gizi buruk tercatat" },
+                  { label: "Akses Air Layak Tahun Lalu (%)", name: "airMinumLalu", tip: "Persentase cakupan air bersih" },
+                  { label: "Akses Sanitasi Tahun Lalu (%)", name: "sanitasiLalu", tip: "Persentase fasilitas higienis" },
+                  { label: "Garis Kemiskinan Tahun Lalu", name: "kemiskinanLalu", tip: "Ambang batas ekonomi (Rp)" }
                 ].map((item, idx) => (
                   <div key={idx} className="group">
                     <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 block group-focus-within:text-indigo-500 transition-colors">{item.label}</label>
